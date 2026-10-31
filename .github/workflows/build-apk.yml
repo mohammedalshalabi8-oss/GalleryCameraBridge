@@ -21,6 +21,20 @@ jobs:
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
 
+    - name: Fix Project Structure
+      run: |
+        mkdir -p app/src/main
+        if [ -f "AndroidManifest.xml" ]; then mv AndroidManifest.xml app/src/main/; fi
+        for f in *.java *.kt; do
+          if [ -f "$f" ]; then
+            mkdir -p app/src/main/java
+            mv "$f" app/src/main/java/
+          fi
+        done
+        if [ ! -f "build.gradle" ] && [ -f "app_build.gradle" ]; then
+          mv app_build.gradle build.gradle
+        fi
+
     - name: Build Debug APK
       run: gradle build
 
