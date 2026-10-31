@@ -36,13 +36,35 @@ jobs:
           fi
         done
 
-        # ضبط ملف الـ build.gradle الخاص بالتطبيق
+        # ضبط ملف الـ build.gradle الخاص بالتطبيق إن وُجد
         if [ -f "build.gradle" ] && [ ! -f "app/build.gradle" ]; then
           cp build.gradle app/
         fi
 
-        # إنشاء ملف إعدادات المشاريع الجذرية لربط الـ app
-        echo "include ':app'" > settings.gradle
+        # إنشاء ملف الإعدادات الجذري مع مستودعات الإضافات المطلوبة لتجنب خطأ الإضافة
+        cat << 'EOF' > settings.gradle
+        pluginManagement {
+            repositories {
+                google()
+                mavenCentral()
+                gradlePluginPortal()
+            }
+        }
+        dependencyResolutionManagement {
+            repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+            repositories {
+                google()
+                mavenCentral()
+            }
+        }
+        rootProject.name = "GalleryCameraBridge"
+        include ':app'
+        EOF
+
+        # إنشاء ملف build.gradle جذري فارغ أو أساسي إن لم يكن موجوداً لربط المشروع
+        if [ ! -f "build.gradle" ]; then
+          echo "// Root build.gradle" > build.gradle
+        fi
 
     - name: Generate Gradle Wrapper
       run: gradle wrapper --gradle-version 8.5
