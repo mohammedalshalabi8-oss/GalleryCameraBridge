@@ -21,22 +21,34 @@ jobs:
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
 
-    - name: Fix Project Structure
+    - name: Reorganize Project Structure Properly
       run: |
-        mkdir -p app/src/main
-        if [ -f "AndroidManifest.xml" ]; then mv AndroidManifest.xml app/src/main/; fi
+        # إنشاء هيكل مجلدات تطبيق أندرويد القياسي
+        mkdir -p app/src/main/java
+        mkdir -p app/src/main/res
+
+        # نقل ملف الواجهة Manifest إن وجد
+        if [ -f "AndroidManifest.xml" ]; then
+          mv AndroidManifest.xml app/src/main/
+        fi
+
+        # نقل ملفات الجافا إلى مسارها الصحيح
         for f in *.java *.kt; do
           if [ -f "$f" ]; then
-            mkdir -p app/src/main/java
             mv "$f" app/src/main/java/
           fi
         done
-        if [ ! -f "build.gradle" ] && [ -f "app_build.gradle" ]; then
-          mv app_build.gradle build.gradle
+
+        # ضبط ملف الـ build.gradle الخاص بالتطبيق
+        if [ -f "build.gradle" ]; then
+          mv build.gradle app/
         fi
 
+        # إنشاء ملف إعدادات المشاريع الجذرية لربط الـ app بـ gradle
+        echo "include ':app'" > settings.gradle
+
     - name: Build Debug APK
-      run: gradle assembleDebug
+      run: gradle :app:assembleDebug
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
